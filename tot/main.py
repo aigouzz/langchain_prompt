@@ -157,24 +157,14 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("正在初始化模型、提取prompt模版、定义chain...")
         # （1）根据API_TYPE选择初始化对应的模型
-        if API_TYPE == "oneapi":
-            # 实例化一个oneapi客户端对象
-            model = ChatOpenAI(
-                base_url=os.getenv("DEEPSEEK_API_BASE"),
-                api_key=SecretStr(os.getenv("DEEPSEEK_API_KEY") or ""),
-                model=str(os.getenv("DEEPSEEK_MODEL")),
-                temperature=0.8,# 发散的程度，一般为0
-                # response_format={"type": response_format},
-            )
-        elif API_TYPE == "openai":
-            # 实例化一个ChatOpenAI客户端对象
-            model = ChatOpenAI(
-                base_url=OPENAI_API_BASE,# 请求的API服务地址
-                api_key=OPENAI_CHAT_API_KEY,# API Key
-                model=OPENAI_CHAT_MODEL,# 本次使用的模型
-                temperature=0.8,# 发散的程度，一般为0
-                # response_format={"type": response_format},
-            )
+        # 实例化一个oneapi客户端对象
+        model = ChatOpenAI(
+            base_url=os.getenv("DEEPSEEK_API_BASE"),
+            api_key=SecretStr(os.getenv("DEEPSEEK_API_KEY") or ""),
+            model=str(os.getenv("DEEPSEEK_MODEL")),
+            temperature=0.8,# 发散的程度，一般为0
+            # response_format={"type": response_format},
+        )
 
         # （2）提取prompt模版
         prompt_template_performanceAnalyser = PromptTemplate.from_file(PROMPT_TEMPLATE_TXT_ANALYSER)
@@ -278,6 +268,8 @@ async def chat_completions(request: ChatCompletionRequest):
             for key, values in leafs.items():
                 sports_list.extend(values)
             logger.info(f"sports_list: {sports_list}")
+            if len(sports_list) > 4:
+                sports_list = sports_list[:4]  
 
             # 第三步 第二层节点遍历
             # 对于每个运动项目，检查其他素质是否适合这个运动项目
@@ -312,7 +304,7 @@ async def chat_completions(request: ChatCompletionRequest):
 
         # formatted_response = str(format_response(result.content))
         formatted_response = finalContent
-        logger.info(f"格式化的搜索结果: {formatted_response}")
+        logger.info(f"格式化的搜索结果: {formatted_response if formatted_response else '无适合的运动项目'}")
 
         # 处理流式响应
         if request.stream:
