@@ -9,7 +9,7 @@ import uuid
 import time
 import logging
 from contextlib import asynccontextmanager
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 from typing import List, Optional, Dict
 from langchain_openai import ChatOpenAI
 # prompt模版
@@ -19,15 +19,16 @@ from langchain_core.prompts import PromptTemplate
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
+from dotenv import load_dotenv
+from pathlib import Path
 
 from pydantic import BaseModel
-from langchain.output_parsers import PydanticOutputParser
+# from langchain.output_parsers import PydanticOutputParser
 
 
 
 # 设置langsmith环境变量
-# os.environ["LANGCHAIN_TRACING_V2"] = "true"
-# os.environ["LANGCHAIN_API_KEY"] = "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"
+load_dotenv()
 
 # 设置日志模版
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -35,21 +36,22 @@ logger = logging.getLogger(__name__)
 
 
 # prompt模版设置相关 根据自己的实际情况进行调整
-PROMPT_TEMPLATE_TXT_ANALYSER = "prompt_template_performanceAnalyser.txt"
-PROMPT_TEMPLATE_TXT_SPORTS = "prompt_template_possibleSports.txt"
-PROMPT_TEMPLATE_TXT_EVALUATE = "prompt_template_evaluate.txt"
-PROMPT_TEMPLATE_TXT_REPORT = "prompt_template_reportGenerator.txt"
+base_path = Path(__file__).parent
+PROMPT_TEMPLATE_TXT_ANALYSER = base_path / "prompt_template_performanceAnalyser.txt"
+PROMPT_TEMPLATE_TXT_SPORTS = base_path / "prompt_template_possibleSports.txt"
+PROMPT_TEMPLATE_TXT_EVALUATE = base_path / "prompt_template_evaluate.txt"
+PROMPT_TEMPLATE_TXT_REPORT = base_path / "prompt_template_reportGenerator.txt"
 
 # 模型设置相关  根据自己的实际情况进行调整
 API_TYPE = "oneapi"  # openai:调用gpt模型；oneapi:调用oneapi方案支持的模型(这里调用通义千问)
 # openai模型相关配置 根据自己的实际情况进行调整
-OPENAI_API_BASE = "https://api.wlai.vip/v1"
-OPENAI_CHAT_API_KEY = "sk-EhxvNWXkjzZJADfHA1Ac24Dd0f0b42B2B97f3725D3BcA378"
-OPENAI_CHAT_MODEL = "gpt-4o-mini"
+# OPENAI_API_BASE = "https://api.wlai.vip/v1"
+# OPENAI_CHAT_API_KEY = "sk-EhxvNWXkjzZJADfHA1Ac24Dd0f0b42B2B97f3725D3BcA378"
+# OPENAI_CHAT_MODEL = "gpt-4o-mini"
 # oneapi相关配置(通义千问为例) 根据自己的实际情况进行调整
-ONEAPI_API_BASE = "http://139.224.72.218:3000/v1"
-ONEAPI_CHAT_API_KEY = "sk-kejMo1NVoYEYFt5rD4E9Ff9c887e413994Be087cAbAdEd6b"
-ONEAPI_CHAT_MODEL = "qwen-max"
+ONEAPI_API_BASE = "http://page.gmcc1923.xyz/v1"
+ONEAPI_CHAT_API_KEY = "sk-4y1PC6HE06NAq9EgAd9c522b4aF74aDa9c45F49d7e400f16"
+ONEAPI_CHAT_MODEL = "deepseek-chat"
 
 # API服务设置相关  根据自己的实际情况进行调整
 PORT = 8012  # 服务访问的端口
@@ -158,9 +160,9 @@ async def lifespan(app: FastAPI):
         if API_TYPE == "oneapi":
             # 实例化一个oneapi客户端对象
             model = ChatOpenAI(
-                base_url=ONEAPI_API_BASE,
-                api_key=ONEAPI_CHAT_API_KEY,
-                model=ONEAPI_CHAT_MODEL,  # 本次使用的模型
+                base_url=os.getenv("DEEPSEEK_API_BASE"),
+                api_key=SecretStr(os.getenv("DEEPSEEK_API_KEY") or ""),
+                model=str(os.getenv("DEEPSEEK_MODEL")),
                 temperature=0.8,# 发散的程度，一般为0
                 # response_format={"type": response_format},
             )
@@ -384,6 +386,6 @@ if __name__ == "__main__":
     logger.info(f"在端口 {PORT} 上启动服务器")
     # uvicorn是一个用于运行ASGI应用的轻量级、超快速的ASGI服务器实现
     # 用于部署基于FastAPI框架的异步PythonWeb应用程序
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
 
 

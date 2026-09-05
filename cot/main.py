@@ -8,7 +8,7 @@ import uuid
 import time
 import logging
 from contextlib import asynccontextmanager
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 from typing import List, Optional, Dict
 from langchain_openai import ChatOpenAI
 # prompt模版
@@ -18,12 +18,13 @@ from langchain_core.prompts import PromptTemplate
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
+from dotenv import load_dotenv
+from pathlib import Path
 
 
 
 # 设置langsmith环境变量
-# os.environ["LANGCHAIN_TRACING_V2"] = "true"
-# os.environ["LANGCHAIN_API_KEY"] = "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"
+load_dotenv()
 
 # 设置日志模版
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -31,8 +32,9 @@ logger = logging.getLogger(__name__)
 
 
 # prompt模版设置相关 根据自己的实际情况进行调整
-PROMPT_TEMPLATE_TXT_SYS = "prompt_template_system.txt"
-PROMPT_TEMPLATE_TXT_USER = "prompt_template_user.txt"
+base_path = Path(__file__).resolve().parent
+PROMPT_TEMPLATE_TXT_SYS = base_path / "prompt_template_system.txt"
+PROMPT_TEMPLATE_TXT_USER = base_path / "prompt_template_user.txt"
 
 # 模型设置相关  根据自己的实际情况进行调整
 API_TYPE = "oneapi"  # openai:调用gpt模型；oneapi:调用oneapi方案支持的模型(这里调用通义千问)
@@ -134,9 +136,9 @@ async def lifespan(app: FastAPI):
         if API_TYPE == "oneapi":
             # 实例化一个oneapi客户端对象
             model = ChatOpenAI(
-                base_url=ONEAPI_API_BASE,
-                api_key=ONEAPI_CHAT_API_KEY,
-                model=ONEAPI_CHAT_MODEL,  # 本次使用的模型
+                base_url=os.getenv("DEEPSEEK_API_BASE"),
+                api_key=SecretStr(os.getenv("DEEPSEEK_API_KEY") or ""),
+                model=str(os.getenv("DEEPSEEK_MODEL")),
                 temperature=0.3,# 发散的程度，一般为0
             )
         elif API_TYPE == "openai":
@@ -270,6 +272,6 @@ if __name__ == "__main__":
     logger.info(f"在端口 {PORT} 上启动服务器")
     # uvicorn是一个用于运行ASGI应用的轻量级、超快速的ASGI服务器实现
     # 用于部署基于FastAPI框架的异步PythonWeb应用程序
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
 
 

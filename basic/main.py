@@ -7,6 +7,7 @@ import asyncio
 import uuid
 import time
 import logging
+from pathlib import Path
 from contextlib import asynccontextmanager
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
@@ -31,19 +32,20 @@ logger = logging.getLogger(__name__)
 
 
 # prompt模版设置相关 根据自己的实际情况进行调整
-PROMPT_TEMPLATE_TXT_SYS = "prompt_template_system.txt"
-PROMPT_TEMPLATE_TXT_USER = "prompt_template_user.txt"
+BASE_DIR = Path(__file__).resolve().parent
+PROMPT_TEMPLATE_TXT_SYS = BASE_DIR / "prompt_template_system.txt"
+PROMPT_TEMPLATE_TXT_USER = BASE_DIR / "prompt_template_user.txt"
 
 # 模型设置相关  根据自己的实际情况进行调整
 API_TYPE = "oneapi"  # openai:调用gpt模型；oneapi:调用oneapi方案支持的模型(这里调用通义千问)
 # openai模型相关配置 根据自己的实际情况进行调整
 OPENAI_API_BASE = "https://api.wlai.vip/v1"
-OPENAI_CHAT_API_KEY = "sk-EhxvNWXkjzZJADfHA1Ac24Dd0f0b42B2B97f3725D3BcA378"
+OPENAI_CHAT_API_KEY = "sk-4y1PC6HE06NAq9EgAd9c522b4aF74aDa9c45F49d7e400f16"
 OPENAI_CHAT_MODEL = "gpt-4o-mini"
 # oneapi相关配置(通义千问为例) 根据自己的实际情况进行调整
-ONEAPI_API_BASE = "http://139.224.72.218:3000/v1"
-ONEAPI_CHAT_API_KEY = "sk-eNbcweTEQV6L5Iw4F0B033219a1149C9Ab77501e690aD218"
-ONEAPI_CHAT_MODEL = "qwen-max"
+ONEAPI_API_BASE = "http://page.gmcc1923.xyz/v1"
+ONEAPI_CHAT_API_KEY = "sk-4y1PC6HE06NAq9EgAd9c522b4aF74aDa9c45F49d7e400f16"
+ONEAPI_CHAT_MODEL = "deepseek-chat"
 
 # API服务设置相关  根据自己的实际情况进行调整
 PORT = 8012  # 服务访问的端口
@@ -271,5 +273,4 @@ if __name__ == "__main__":
     # uvicorn是一个用于运行ASGI应用的轻量级、超快速的ASGI服务器实现
     # 用于部署基于FastAPI框架的异步PythonWeb应用程序
     uvicorn.run(app, host="0.0.0.0", port=PORT)
-
 

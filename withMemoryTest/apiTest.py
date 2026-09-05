@@ -12,14 +12,16 @@ url = "http://localhost:8012/v1/chat/completions"
 headers = {"Content-Type": "application/json"}
 
 # 默认非流式输出 True or False
-stream_flag = False
+stream_flag = True
 
-input_text = "有没有土豪套餐"
+# input_text = "有没有土豪套餐"
 # input_text = "这个套餐是多少钱"
 # input_text = "办个200G的套餐"
 # input_text = "这个套餐是多少钱"
 # input_text = "就是刚刚问的那个套餐"
 # input_text = "LangChain是什么"
+# input_text = "我是学生，没有多少钱"
+input_text = "还记得我们对话吗"
 
 # 第一次请求
 data = {
@@ -60,6 +62,6 @@ if stream_flag:
 else:
     # 发送post请求
     response = requests.post(url, headers=headers, data=json.dumps(data))
-    # logger.info(f"接收到返回的响应原始内容: {response.json()}\n")
+    logger.info(f"接收到返回的响应原始内容: {response.json()}\n")
     content = response.json()['choices'][0]['message']['content']
     logger.info(f"非流式输出，响应内容是: {content}\n")
